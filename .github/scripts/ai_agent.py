@@ -77,7 +77,7 @@ def get_gemini_response(prompt, system_instruction_text=None):
         except FileNotFoundError:
             system_instruction_text = "You are a helpful AI software engineer."
 
-    system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON."
+    system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON. All newlines inside JSON strings MUST be escaped as \\n."
 
     # DEBUG LOG: Print the full prompt to see what's being sent
     print("\n[DEBUG] System Instruction:\n", system_instruction_text)
@@ -110,18 +110,22 @@ def handle_spec():
     2. The filename should be descriptive (e.g., `doc/feature_name_spec.md`).
     3. Content must strictly follow the 'Spec Definition' rules in GEMINI.md.
     4. The content of the specification MUST be in Korean.
-    5. Return ONLY the JSON structure:
+    5. Return ONLY the JSON structure with NO extra text or markdown formatting outside the JSON.
+    
+    Expected JSON Format:
     {{
         "filename": "doc/...",
-        "content": "...markdown content in Korean..."
+        "content": "..."
     }}
+    
+    IMPORTANT: The 'content' field must be a SINGLE LINE string with all newlines escaped (\\n).
     """
     
     response_text = get_gemini_response(prompt)
     
     try:
         json_str = extract_json(response_text)
-        data = json.loads(json_str)
+        data = json.loads(json_str, strict=False)
         filename = data["filename"]
         content = data["content"]
         
