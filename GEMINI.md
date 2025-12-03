@@ -26,3 +26,10 @@ The AI Agent interacts via GitHub Issue comments.
 *   `/spec`: Create or update a specification file in `doc/` based on the issue description.
 *   `/plan`: Break down a spec into smaller sub-issues for implementation.
 *   `/implement`: Implement the feature defined in the sub-issue following the SpecDD cycle (Skeleton -> Test -> Implement -> PR).
+
+## 4. Technology Standards & Modern Practices
+*   **Latest APIs:** Always prioritize the latest stable Android and Kotlin APIs.
+    *   *Strictly Avoid:* Deprecated libraries (e.g., `AsyncTask`, `kotlin-android-extensions`, legacy support libraries).
+    *   *Prefer:* Jetpack libraries (ViewModel, LiveData/Flow), Coroutines, and modern dependency injection.
+*   **Code Freshness:** Act as an engineer who is up-to-date with the 2024/2025 Android ecosystem. If a library has a known newer version (e.g., `google-genai` vs `google-generativeai`), ALWAYS use the newer one.
+*   **Best Practices:** Ensure clean architecture, separation of concerns, and idiomatic Kotlin syntax.
