@@ -35,22 +35,41 @@ def run_command(command):
 
 def extract_json(text):
     """Robustly extracts JSON from a string."""
-    # Try to find JSON block within markdown code blocks
     json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
     
-    # Try to find a raw JSON object or array
     json_match = re.search(r"(\{.*\}|\[.*\])", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
         
-    return text # Return original if no pattern matched, hoping it's raw JSON
+    return text
+
+def fetch_spec_content(text):
+    """Finds doc/*.md references in text and fetches their content."""
+    spec_content = ""
+    # Regex to find file paths like doc/something.md or just something.md if mentioned in doc context
+    matches = re.findall(r'(doc/[\w\-\.]+\.md)', text)
+    
+    if not matches:
+        return ""
+        
+    print(f"Found spec references: {matches}")
+    
+    for file_path in matches:
+        try:
+            # Fetch file content from the repo (main branch)
+            file_content = repo.get_contents(file_path, ref="main")
+            decoded_content = file_content.decoded_content.decode("utf-8")
+            spec_content += f"\n\n--- Content of {file_path} ---\n{decoded_content}\n------------------------------\n"
+        except Exception as e:
+            print(f"Warning: Could not fetch spec file {file_path}: {e}")
+            
+    return spec_content
 
 def get_gemini_response(prompt, system_instruction_text=None):
     """Helper to get response from Gemini using the new SDK."""
     
-    # Load system instruction from GEMINI.md if not provided
     if not system_instruction_text:
         try:
             with open("GEMINI.md", "r") as f:
@@ -58,8 +77,11 @@ def get_gemini_response(prompt, system_instruction_text=None):
         except FileNotFoundError:
             system_instruction_text = "You are a helpful AI software engineer."
 
-    # Force Korean language and JSON format
     system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON."
+
+    # DEBUG LOG: Print the full prompt to see what's being sent
+    print("\n[DEBUG] System Instruction:\n", system_instruction_text)
+    print("\n[DEBUG] User Prompt:\n", prompt)
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction_text,
@@ -103,12 +125,10 @@ def handle_spec():
         filename = data["filename"]
         content = data["content"]
         
-        # Write file
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, "w") as f:
             f.write(content)
             
-        # Git Operations
         branch_name = f"spec/issue-{ISSUE_NUMBER}"
         run_command(f"git config --global user.email 'gemini-bot@example.com'")
         run_command(f"git config --global user.name 'Gemini Bot'")
@@ -117,7 +137,6 @@ def handle_spec():
         run_command(f"git commit -m 'Add spec for Issue #{ISSUE_NUMBER}'")
         run_command(f"git push origin {branch_name}")
         
-        # Create PR
         pr = repo.create_pull(
             title=f"Spec: {issue.title}",
             body=f"이슈 #{ISSUE_NUMBER}를 기반으로 생성된 명세서입니다.",
@@ -127,17 +146,23 @@ def handle_spec():
         issue.create_comment(f"명세서가 작성되었습니다! PR: {pr.html_url}\n파일: {filename}")
         
     except Exception as e:
-        print(f"Raw Response: {response_text}") # Log for debugging
+        print(f"Raw Response: {response_text}")
         issue.create_comment(f"명세서 작성 중 오류 발생: {str(e)}")
 
 def handle_plan():
     """Handles the /plan command."""
     print(f"Processing /plan for Issue #{ISSUE_NUMBER}")
     
+    # Fetch referenced specs
+    spec_context = fetch_spec_content(issue.body) + fetch_spec_content(COMMENT_BODY)
+
     prompt = f"""
     The user wants to break down the work into sub-issues.
     Issue Title: {issue.title}
     Issue Body: {issue.body}
+    
+     Referenced Specifications (Context):
+    {spec_context}
     
     Task:
     1. Identify the specification (if mentioned).
@@ -173,11 +198,17 @@ def handle_implement():
     """Handles the /implement command."""
     print(f"Processing /implement for Issue #{ISSUE_NUMBER}")
     
+    # Fetch referenced specs (Crucial Step!)
+    spec_context = fetch_spec_content(issue.body) + fetch_spec_content(COMMENT_BODY)
+    
     prompt = f"""
     The user wants to implement the feature described in this issue.
     Issue Title: {issue.title}
     Issue Body: {issue.body}
     Comment Instruction: {COMMENT_BODY}
+    
+    Referenced Specifications (Context):
+    {spec_context}
     
     STRICT RULE: Follow SpecDD.
     1. Write Unit Test (src/test/...) that FAILS.
@@ -213,7 +244,8 @@ def handle_implement():
         # Run Tests
         run_command("chmod +x gradlew")
         test_result = run_command("./gradlew testDebugUnitTest")
-        
+        print(f"[DEBUG] Test Result:\n{test_result}")
+
         commit_msg = "Implement feature with tests"
         test_status_kor = "실패"
         if test_result and "BUILD SUCCESSFUL" in test_result:
