@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.fakeyoutube"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.fakeyoutube"
@@ -21,14 +19,41 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+        getByName("debug") {
+            isMinifyEnabled = false
+            isDebuggable = true
+        }
     }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+
+        create("stage") {
+            dimension = "environment"
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+        }
+
+        create("prod") {
+            dimension = "environment"
+            // Suffix 없음
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -38,6 +63,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
