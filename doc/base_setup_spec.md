@@ -112,3 +112,14 @@ fun HomeScreen() {
 *   앱 실행 시 'Home Screen' 텍스트가 중앙에 표시되어야 한다.
 *   하단 'Shorts' 탭 클릭 시 화면 중앙 텍스트가 'Shorts Screen'으로 변경되어야 한다.
 *   상단 바에 로고와 4개의 우측 아이콘이 표시되어야 한다.
+
+## 7. 시각적 참조 (Visual References)
+다음은 구현의 기준이 되는 UI 스크린샷입니다.
+
+### 7.1 헤더 및 하단 네비게이션 (Header & Bottom Navigation)
+상단 앱바(TopAppBar)와 하단 네비게이션 바(BottomNavigationBar)의 디자인 및 배치를 참조합니다.
+![Header and Bottom Bar](assets/header-bottom.png)
+
+### 7.2 메인 콘텐츠 영역 (Content Area)
+비디오 피드 리스트 등 메인 콘텐츠 영역의 레이아웃을 참조합니다.
+![Main Contents](assets/contents.png)
