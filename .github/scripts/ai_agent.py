@@ -1,6 +1,7 @@
 import os
 import json
 import subprocess
+import re
 from google import genai
 from google.genai import types
 from github import Github
@@ -32,6 +33,20 @@ def run_command(command):
         print(e.stderr)
         return None
 
+def extract_json(text):
+    """Robustly extracts JSON from a string."""
+    # Try to find JSON block within markdown code blocks
+    json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
+    if json_match:
+        return json_match.group(1)
+    
+    # Try to find a raw JSON object or array
+    json_match = re.search(r"(\{.*\}|\[.*\])", text, re.DOTALL)
+    if json_match:
+        return json_match.group(1)
+        
+    return text # Return original if no pattern matched, hoping it's raw JSON
+
 def get_gemini_response(prompt, system_instruction_text=None):
     """Helper to get response from Gemini using the new SDK."""
     
@@ -43,8 +58,8 @@ def get_gemini_response(prompt, system_instruction_text=None):
         except FileNotFoundError:
             system_instruction_text = "You are a helpful AI software engineer."
 
-    # Force Korean language in system instruction
-    system_instruction_text += "\n\nIMPORTANT: All explanations, issue descriptions, PR bodies, and specifications MUST be written in Korean (한국어)."
+    # Force Korean language and JSON format
+    system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON."
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction_text,
@@ -83,13 +98,7 @@ def handle_spec():
     response_text = get_gemini_response(prompt)
     
     try:
-        # JSON Cleanup
-        json_str = response_text.strip()
-        if json_str.startswith("```json"):
-            json_str = json_str[7:]
-        if json_str.endswith("```"):
-            json_str = json_str[:-3]
-            
+        json_str = extract_json(response_text)
         data = json.loads(json_str)
         filename = data["filename"]
         content = data["content"]
@@ -118,6 +127,7 @@ def handle_spec():
         issue.create_comment(f"명세서가 작성되었습니다! PR: {pr.html_url}\n파일: {filename}")
         
     except Exception as e:
+        print(f"Raw Response: {response_text}") # Log for debugging
         issue.create_comment(f"명세서 작성 중 오류 발생: {str(e)}")
 
 def handle_plan():
@@ -145,12 +155,7 @@ def handle_plan():
     
     response_text = get_gemini_response(prompt)
     try:
-        json_str = response_text.strip()
-        if json_str.startswith("```json"):
-            json_str = json_str[7:]
-        if json_str.endswith("```"):
-            json_str = json_str[:-3]
-
+        json_str = extract_json(response_text)
         tasks = json.loads(json_str)
         
         created_issues = []
@@ -161,6 +166,7 @@ def handle_plan():
         issue.create_comment(f"서브 이슈들이 생성되었습니다: {', '.join(created_issues)}")
         
     except Exception as e:
+        print(f"Raw Response: {response_text}")
         issue.create_comment(f"계획 수립 중 오류 발생: {str(e)}")
 
 def handle_implement():
@@ -189,12 +195,7 @@ def handle_implement():
     
     response_text = get_gemini_response(prompt)
     try:
-        json_str = response_text.strip()
-        if json_str.startswith("```json"):
-            json_str = json_str[7:]
-        if json_str.endswith("```"):
-            json_str = json_str[:-3]
-
+        json_str = extract_json(response_text)
         data = json.loads(json_str)
         files = data["files"]
         
@@ -233,6 +234,7 @@ def handle_implement():
         issue.create_comment(f"구현 PR이 생성되었습니다: {pr.html_url}")
         
     except Exception as e:
+        print(f"Raw Response: {response_text}")
         issue.create_comment(f"구현 중 오류 발생: {str(e)}")
 
 def main():
