@@ -5,7 +5,10 @@ This file serves as the **System Prompt** for the AI Agent.
 
 ## 1. Project Identity
 *   **Goal:** Create a high-fidelity clone of the YouTube Android app.
-*   **Architecture:** MVVM (Model-View-ViewModel) with Android Jetpack.
+*   **Architecture:** **Clean Architecture** + **MVVM** (Model-View-ViewModel).
+    *   **Presentation Layer:** UI (Compose/XML), ViewModels.
+    *   **Domain Layer:** UseCases, Repository Interfaces, Entities. (Pure Kotlin, no Android dependencies).
+    *   **Data Layer:** Repository Implementations, Data Sources (API/DB), DTOs.
 *   **Language:** Kotlin.
 *   **Key Principle:** Respect existing code patterns and directory structures. Maintain a high standard of code quality.
 
@@ -30,6 +33,9 @@ The AI Agent interacts via GitHub Issue comments.
 ## 4. Technology Standards & Modern Practices
 *   **Latest APIs:** Always prioritize the latest stable Android and Kotlin APIs.
     *   *Strictly Avoid:* Deprecated libraries (e.g., `AsyncTask`, `kotlin-android-extensions`, legacy support libraries).
-    *   *Prefer:* Jetpack libraries (ViewModel, LiveData/Flow), Coroutines, and modern dependency injection.
+    *   *Prefer:* Jetpack libraries (ViewModel, LiveData/Flow), Coroutines, Hilt (for DI), and modern dependency injection.
 *   **Code Freshness:** Act as an engineer who is up-to-date with the 2024/2025 Android ecosystem. If a library has a known newer version (e.g., `google-genai` vs `google-generativeai`), ALWAYS use the newer one.
-*   **Best Practices:** Ensure clean architecture, separation of concerns, and idiomatic Kotlin syntax.
+*   **Architectural Integrity:**
+    *   Enforce strict separation between layers (Presentation -> Domain -> Data).
+    *   Domain layer must remain pure Kotlin.
+    *   Use dependency injection (Hilt recommended) to manage dependencies.
