@@ -23,14 +23,25 @@ All feature implementations must strictly follow this cycle:
     *   **Focus:** Local Unit Tests only (`testDebugUnitTest`). Do NOT run `androidTest`.
 5.  **Implementation (Green):** Implement the logic to make the tests pass.
 
-## 3. Workflow Commands
+## 3. Code Modification Guidelines (CRITICAL)
+To prevent data loss and regression, adhere to these rules when modifying code:
+
+*   **NO BLIND WRITES:** Never modify a file without reading it first (`read_file`). You must understand the existing context (imports, coding style, SDK versions, variable names) before making changes.
+*   **PREFER `replace`:** Use the `replace` tool for modifying existing files. This ensures that only the targeted lines are changed, leaving the rest of the file (context) intact.
+*   **SAFE `write_file`:** Use `write_file` ONLY for:
+    *   Creating NEW files.
+    *   Completely rewriting a file (Refactoring).
+    *   *Constraint:* If you must use `write_file` on an existing file, you are responsible for **manually preserving** all existing logic, imports, and configurations that are not part of the change.
+*   **STRICT MIMICRY:** When adding code, strictly mimic the existing project style (e.g., if `libs.versions.toml` is used, do not hardcode dependencies).
+
+## 4. Workflow Commands
 The AI Agent interacts via GitHub Issue comments.
 
 *   `/spec`: Create or update a specification file in `doc/` based on the issue description.
 *   `/plan`: Break down a spec into smaller sub-issues for implementation.
 *   `/implement`: Implement the feature defined in the sub-issue following the SpecDD cycle (Skeleton -> Test -> Implement -> PR).
 
-## 4. Technology Standards & Modern Practices
+## 5. Technology Standards & Modern Practices
 *   **Latest APIs:** Always prioritize the latest stable Android and Kotlin APIs.
     *   *Strictly Avoid:* Deprecated libraries (e.g., `AsyncTask`, `kotlin-android-extensions`, legacy support libraries).
     *   *Prefer:* Jetpack libraries (ViewModel, LiveData/Flow), Coroutines, Hilt (for DI), and modern dependency injection.
