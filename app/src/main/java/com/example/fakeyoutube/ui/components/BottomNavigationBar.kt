@@ -13,6 +13,9 @@ import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material.icons.outlined.VideoLibrary
+import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.outlined.SmartDisplay
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,10 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import com.example.fakeyoutube.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+
+import com.example.fakeyoutube.ui.navigation.Screen
 
 // Navigation Item Definition
 sealed class BottomNavItem(
@@ -34,12 +41,12 @@ sealed class BottomNavItem(
     val isCreateButton: Boolean = false,
     val isProfile: Boolean = false
 ) {
-    object Home : BottomNavItem("home", "홈", Icons.Filled.Home, Icons.Outlined.Home)
+    object Home : BottomNavItem(Screen.Home.route, "홈", Icons.Filled.Home, Icons.Outlined.Home)
     // Using VideoLibrary as placeholder for Shorts icon
-    object Shorts : BottomNavItem("shorts", "쇼츠", Icons.Filled.VideoLibrary, Icons.Outlined.VideoLibrary)
-    object Create : BottomNavItem("create", "", Icons.Filled.Add, Icons.Filled.Add, isCreateButton = true)
-    object Subscriptions : BottomNavItem("subscriptions", "구독", Icons.Filled.Subscriptions, Icons.Outlined.Subscriptions)
-    object MyPage : BottomNavItem("mypage", "마이페이지", Icons.Filled.AccountCircle, Icons.Filled.AccountCircle, isProfile = true)
+    object Shorts : BottomNavItem(Screen.Shorts.route, "쇼츠", Icons.Filled.VideoLibrary, Icons.Outlined.VideoLibrary)
+    object Create : BottomNavItem(Screen.Upload.route, "", Icons.Filled.Add, Icons.Filled.Add, isCreateButton = true)
+    object Subscriptions : BottomNavItem(Screen.Subscription.route, "구독", Icons.Filled.Subscriptions, Icons.Outlined.Subscriptions)
+    object MyPage : BottomNavItem(Screen.Library.route, "마이페이지", Icons.Filled.AccountCircle, Icons.Filled.AccountCircle, isProfile = true)
 }
 
 @Composable
@@ -53,8 +60,8 @@ fun BottomNavigationBar(navController: NavController) {
     )
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        containerColor = MaterialTheme.colorScheme.background, // Use background color
+        tonalElevation = 0.dp // Remove tonal elevation to match flat look
     ) {
         val navBackStackEntry = navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry.value?.destination?.route
@@ -79,11 +86,11 @@ fun BottomNavigationBar(navController: NavController) {
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color.LightGray.copy(alpha = 0.5f)),
+                                .background(if (isSystemInDarkTheme()) Color(0xFF272727) else Color(0xFFF2F2F2)), // YouTube Create Button Color
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = item.iconFilled,
+                                imageVector = item.iconFilled!!,
                                 contentDescription = "Create",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(24.dp)
@@ -115,10 +122,10 @@ fun BottomNavigationBar(navController: NavController) {
                 },
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color.Transparent,
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    selectedIconColor = MaterialTheme.colorScheme.onBackground, // Active icon color (Black/White)
+                    selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unselectedIconColor = MaterialTheme.colorScheme.onBackground, // Inactive icon color (Black/White)
+                    unselectedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         }
