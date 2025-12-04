@@ -50,7 +50,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 *   [x] **기반 코드 - 테마 및 프로젝트 설정** (Issue #17)
     *   `libs.versions.toml` 의존성 확인.
     *   `ui/theme/Color.kt`, `Theme.kt`, `Type.kt` 작성 (YouTube Red 컬러 적용).
-*   [ ] **기반 코드 - 화면 스켈레톤 및 라우트 정의** (Issue #18)
+*   [x] **기반 코드 - 화면 스켈레톤 및 라우트 정의** (Issue #18)
     *   `Screen` Sealed Class 정의.
     *   5개 탭(Home, Shorts, Upload, Subscription, Library) 빈 화면 Composable 구현.
 *   [ ] **기반 코드 - 네비게이션 호스팅 및 하단 바 구현** (Issue #19)
