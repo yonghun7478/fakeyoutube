@@ -56,6 +56,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 *   [x] **기반 코드 - 네비게이션 호스팅 및 하단 바 구현** (Issue #19)
     *   `BottomNavigationBar` 컴포저블 구현.
     *   `MainScreen` 내 `Scaffold` 및 `NavHost` 구성.
-*   [ ] **기반 코드 - 홈 상단 앱바 (TopAppBar) 구현** (Issue #20)
+*   [x] **기반 코드 - 홈 상단 앱바 (TopAppBar) 구현** (Issue #20)
     *   `HomeTopBar` 컴포저블 작성 (로고 및 아이콘 배치).
     *   `Scaffold`에 TopBar 적용.
