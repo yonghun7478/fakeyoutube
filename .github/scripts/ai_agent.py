@@ -6,6 +6,7 @@ import sys
 from google import genai
 from google.genai import types
 from github import Github
+from github import Auth
 
 # --- Configuration ---
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -17,7 +18,8 @@ COMMENT_AUTHOR = os.getenv("COMMENT_AUTHOR")
 
 # Initialize API Clients
 client = genai.Client(api_key=GEMINI_API_KEY)
-gh = Github(GITHUB_TOKEN)
+auth = Auth.Token(GITHUB_TOKEN)
+gh = Github(auth=auth)
 repo = gh.get_repo(REPO_NAME)
 issue = repo.get_issue(ISSUE_NUMBER)
 
@@ -36,17 +38,20 @@ def run_command(command):
 
 def extract_json(text):
     """Robustly extracts JSON from a string."""
-    # Case 1: Markdown Code Block
+    # Case 1: Markdown Code Block with 'json' identifier
     json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
-        print("[DEBUG] Extracted JSON from code block.")
+        print("[DEBUG] Extracted JSON from 'json' code block.")
         return json_match.group(1)
     
-    # Case 2: Generic Code Block
-    json_match = re.search(r"```\s*(.*?)\s*```", text, re.DOTALL)
-    if json_match:
-        print("[DEBUG] Extracted JSON from generic code block.")
-        return json_match.group(1)
+    # Case 2: Generic Code Block (MUST start with { or [)
+    # This prevents capturing ```text ... ``` or ```bash ... ``` blocks
+    code_blocks = re.findall(r"```\s*(.*?)\s*```", text, re.DOTALL)
+    for block in code_blocks:
+        stripped_block = block.strip()
+        if stripped_block.startswith("{") or stripped_block.startswith("["):
+            print("[DEBUG] Extracted JSON from generic code block (verified content).")
+            return stripped_block
 
     # Case 3: Raw JSON (starts with { or [ and ends with } or ])
     json_match = re.search(r"(\s*\{.*\}\s*|\s*\[.*\]\s*)", text, re.DOTALL)
