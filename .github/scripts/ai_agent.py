@@ -35,37 +35,19 @@ def run_command(command):
 
 def extract_json(text):
     """Robustly extracts JSON from a string."""
+    # If Gemini returns pure JSON due to mime_type, we might not have markdown fences.
+    # But we check for fences just in case.
     json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
     
-    json_match = re.search(r"(\{.*\}|\[.*\])", text, re.DOTALL)
+    # Sometimes it might be wrapped in ``` only
+    json_match = re.search(r"```\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
-        
-    return text
 
-def fetch_spec_content(text):
-    """Finds doc/*.md references in text and fetches their content."""
-    spec_content = ""
-    # Regex to find file paths like doc/something.md or just something.md if mentioned in doc context
-    matches = re.findall(r'(doc/[\w\-\.]+\.md)', text)
-    
-    if not matches:
-        return ""
-        
-    print(f"Found spec references: {matches}")
-    
-    for file_path in matches:
-        try:
-            # Fetch file content from the repo (main branch)
-            file_content = repo.get_contents(file_path, ref="main")
-            decoded_content = file_content.decoded_content.decode("utf-8")
-            spec_content += f"\n\n--- Content of {file_path} ---\n{decoded_content}\n------------------------------\n"
-        except Exception as e:
-            print(f"Warning: Could not fetch spec file {file_path}: {e}")
-            
-    return spec_content
+    # If no fences, return text (assuming it is raw JSON)
+    return text
 
 def get_gemini_response(prompt, system_instruction_text=None):
     """Helper to get response from Gemini using the new SDK."""
@@ -77,7 +59,7 @@ def get_gemini_response(prompt, system_instruction_text=None):
         except FileNotFoundError:
             system_instruction_text = "You are a helpful AI software engineer."
 
-    system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON. All newlines inside JSON strings MUST be escaped as \\n."
+    system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON."
 
     # DEBUG LOG: Print the full prompt to see what's being sent
     print("\n[DEBUG] System Instruction:\n", system_instruction_text)
@@ -85,7 +67,8 @@ def get_gemini_response(prompt, system_instruction_text=None):
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction_text,
-        response_modalities=["TEXT"]
+        response_modalities=["TEXT"],
+        response_mime_type="application/json"
     )
 
     response = client.models.generate_content(
