@@ -21,8 +21,7 @@ repo = gh.get_repo(REPO_NAME)
 issue = repo.get_issue(ISSUE_NUMBER)
 
 # Constants
-# Changed to gemini-1.5-pro for stability and large output token support (8192)
-MODEL_ID = "gemini-1.5-pro"
+MODEL_ID = "gemini-3-pro-preview"
 
 def run_command(command):
     """Runs a shell command and returns output."""
@@ -92,7 +91,7 @@ def get_gemini_response(prompt, system_instruction_text=None):
         system_instruction=system_instruction_text,
         response_modalities=["TEXT"],
         response_mime_type="application/json",
-        max_output_tokens=8192 # Explicitly set max output tokens
+        max_output_tokens=20000 # Increased for large code generation
     )
 
     response = client.models.generate_content(
