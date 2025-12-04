@@ -53,7 +53,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 *   [x] **기반 코드 - 화면 스켈레톤 및 라우트 정의** (Issue #18)
     *   `Screen` Sealed Class 정의.
     *   5개 탭(Home, Shorts, Upload, Subscription, Library) 빈 화면 Composable 구현.
-*   [ ] **기반 코드 - 네비게이션 호스팅 및 하단 바 구현** (Issue #19)
+*   [x] **기반 코드 - 네비게이션 호스팅 및 하단 바 구현** (Issue #19)
     *   `BottomNavigationBar` 컴포저블 구현.
     *   `MainScreen` 내 `Scaffold` 및 `NavHost` 구성.
 *   [ ] **기반 코드 - 홈 상단 앱바 (TopAppBar) 구현** (Issue #20)
