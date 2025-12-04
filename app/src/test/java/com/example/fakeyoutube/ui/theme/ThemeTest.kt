@@ -15,7 +15,7 @@ class ThemeTest {
         // Spec 2: YouTube Brand Color Red #FF0000
         val expectedArgb = 0xFFFF0000
         
-        // Note: Color.value is a ULong in Compose
-        assertEquals(expectedArgb.toULong(), YouTubeRed.value)
+        // Note: Color.value is a ULong in Compose, so we compare with the ULong representation
+        assertEquals(Color(expectedArgb).value, YouTubeRed.value)
     }
 }
