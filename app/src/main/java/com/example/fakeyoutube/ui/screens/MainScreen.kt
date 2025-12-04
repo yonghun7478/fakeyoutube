@@ -14,6 +14,9 @@ import com.example.fakeyoutube.ui.components.BottomNavigationBar
 import com.example.fakeyoutube.ui.components.HomeTopBar
 import com.example.fakeyoutube.ui.navigation.Screen
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -28,18 +31,7 @@ fun MainScreen() {
             }
         },
         bottomBar = {
-            BottomNavigationBar(
-                currentRoute = currentRoute,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
+            BottomNavigationBar(navController = navController)
         }
     ) { innerPadding ->
         NavHost(
