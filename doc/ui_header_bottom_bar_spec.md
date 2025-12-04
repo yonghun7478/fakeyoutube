@@ -45,18 +45,18 @@
     *   Custom Vector (Shorts Logo).
 
 ## 5. 구현 체크리스트 (Implementation Checklist)
-- [ ] `doc/assets/header-bottom.png` 재분석 및 자산 준비
-    - [ ] YouTube Premium 로고 확보
-    - [ ] Shorts 아이콘 확보
-- [ ] 상단바(TopBar) UI 수정 (`HomeTopBar.kt`)
-    - [ ] 로고 교체 (YouTube -> YouTube Premium)
-    - [ ] 우측 아이콘 구성 변경 (프로필 제거, 3개 아이콘 배치)
-    - [ ] 알림 아이콘에 뱃지(Badge) 추가 구현
-- [ ] 하단바(BottomBar) UI 수정 (`BottomNavigationBar.kt`)
-    - [ ] NavigationItem 구조체 변경 (5개 탭)
-    - [ ] 5번째 탭을 '마이페이지'로 변경하고 프로필 이미지 적용
-    - [ ] 3번째 '만들기' 탭 스타일링 (원형 배경, 라벨 없음)
-    - [ ] 탭 선택/미선택 아이콘 리소스 연결
+- [x] `doc/assets/header-bottom.png` 재분석 및 자산 준비
+    - [x] YouTube Premium 로고 확보 (텍스트/아이콘 시뮬레이션으로 대체)
+    - [x] Shorts 아이콘 확보 (Material Icon 대체)
+- [x] 상단바(TopBar) UI 수정 (`HomeTopBar.kt`)
+    - [x] 로고 교체 (YouTube -> YouTube Premium)
+    - [x] 우측 아이콘 구성 변경 (프로필 제거, 3개 아이콘 배치)
+    - [x] 알림 아이콘에 뱃지(Badge) 추가 구현
+- [x] 하단바(BottomBar) UI 수정 (`BottomNavigationBar.kt`)
+    - [x] NavigationItem 구조체 변경 (5개 탭)
+    - [x] 5번째 탭을 '마이페이지'로 변경하고 프로필 이미지 적용
+    - [x] 3번째 '만들기' 탭 스타일링 (원형 배경, 라벨 없음)
+    - [x] 탭 선택/미선택 아이콘 리소스 연결
 - [ ] 레이아웃 검증
     - [ ] Scaffold 패딩 및 전체 배치 확인
     - [ ] 스크린샷과 대조 (Pixel Perfect 지향)
