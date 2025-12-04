@@ -195,7 +195,7 @@ def handle_plan():
     response_text = get_gemini_response(prompt)
     try:
         json_str = extract_json(response_text)
-        tasks = json.loads(json_str)
+        tasks = json.loads(json_str, strict=False)
         
         created_issues = []
         for task in tasks:
@@ -245,7 +245,8 @@ def handle_implement():
     response_text = get_gemini_response(prompt)
     try:
         json_str = extract_json(response_text)
-        data = json.loads(json_str)
+        # Use strict=False to allow control characters (newlines) in JSON strings
+        data = json.loads(json_str, strict=False)
         files = data["files"]
         
         branch_name = f"feat/issue-{ISSUE_NUMBER}"
