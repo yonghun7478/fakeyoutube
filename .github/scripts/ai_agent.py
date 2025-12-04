@@ -36,24 +36,31 @@ def run_command(command):
 
 def extract_json(text):
     """Robustly extracts JSON from a string."""
-    # If Gemini returns pure JSON due to mime_type, we might not have markdown fences.
-    # But we check for fences just in case.
+    # Case 1: Markdown Code Block
     json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
+        print("[DEBUG] Extracted JSON from code block.")
         return json_match.group(1)
     
-    # Sometimes it might be wrapped in ``` only
+    # Case 2: Generic Code Block
     json_match = re.search(r"```\s*(.*?)\s*```", text, re.DOTALL)
     if json_match:
+        print("[DEBUG] Extracted JSON from generic code block.")
         return json_match.group(1)
 
-    # If no fences, return text (assuming it is raw JSON)
+    # Case 3: Raw JSON (starts with { or [ and ends with } or ])
+    json_match = re.search(r"(\s*\{.*\}\s*|\s*\[.*\]\s*)", text, re.DOTALL)
+    if json_match:
+        print("[DEBUG] Extracted raw JSON structure.")
+        return json_match.group(1)
+
+    # Fallback: Return original text if it looks vaguely like JSON, otherwise empty
+    print("[DEBUG] No JSON pattern found, returning raw text.")
     return text
 
 def fetch_spec_content(text):
     """Finds doc/*.md references in text and fetches their content."""
     spec_content = ""
-    # Regex to find file paths like doc/something.md or just something.md if mentioned in doc context
     matches = re.findall(r'(doc/[\w\-\.]+\.md)', text)
     
     if not matches:
@@ -63,7 +70,6 @@ def fetch_spec_content(text):
     
     for file_path in matches:
         try:
-            # Fetch file content from the repo (main branch)
             file_content = repo.get_contents(file_path, ref="main")
             decoded_content = file_content.decoded_content.decode("utf-8")
             spec_content += f"\n\n--- Content of {file_path} ---\n{decoded_content}\n------------------------------\n"
@@ -84,15 +90,15 @@ def get_gemini_response(prompt, system_instruction_text=None):
 
     system_instruction_text += "\n\nIMPORTANT: All explanations must be in Korean. Output MUST be valid JSON."
 
-    # DEBUG LOG: Print the full prompt to see what's being sent
-    print("\n[DEBUG] System Instruction:\n", system_instruction_text)
-    print("\n[DEBUG] User Prompt:\n", prompt)
+    # [REMOVED] Cleaned up logs to avoid clutter (user request)
+    # print("\n[DEBUG] System Instruction:\n", system_instruction_text)
+    # print("\n[DEBUG] User Prompt:\n", prompt)
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction_text,
         response_modalities=["TEXT"],
         response_mime_type="application/json",
-        max_output_tokens=20000 # Increased for large code generation
+        max_output_tokens=20000
     )
 
     response = client.models.generate_content(
@@ -166,7 +172,6 @@ def handle_plan():
     """Handles the /plan command."""
     print(f"Processing /plan for Issue #{ISSUE_NUMBER}")
     
-    # Fetch referenced specs
     spec_context = fetch_spec_content(issue.body) + fetch_spec_content(COMMENT_BODY)
 
     prompt = f"""
@@ -213,7 +218,6 @@ def handle_implement():
     """Handles the /implement command."""
     print(f"Processing /implement for Issue #{ISSUE_NUMBER}")
     
-    # Fetch referenced specs (Crucial Step!)
     spec_context = fetch_spec_content(issue.body) + fetch_spec_content(COMMENT_BODY)
     
     prompt = f"""
@@ -245,7 +249,8 @@ def handle_implement():
     response_text = get_gemini_response(prompt)
     try:
         json_str = extract_json(response_text)
-        # Use strict=False to allow control characters (newlines) in JSON strings
+        print(f"[DEBUG] Extracted JSON String (First 500 chars): {json_str[:500]}") # Log what we're trying to parse
+        
         data = json.loads(json_str, strict=False)
         files = data["files"]
         
