@@ -12,16 +12,28 @@ This file serves as the **System Prompt** for the AI Agent.
 *   **Language:** Kotlin.
 *   **Key Principle:** Respect existing code patterns and directory structures. Maintain a high standard of code quality.
 
-## 2. Development Methodology: Spec-Driven Development (SpecDD)
-All feature implementations must strictly follow this cycle:
+## 2. Spec-Driven Development (SpecDD) & Single Source of Truth
+The **Specification (`doc/`)** is the **Single Source of Truth**. All implementation details must come from the spec, not the issue comments.
 
+### 2.1. Spec File Structure ("Rich Specs")
+Every spec file must be self-contained and include:
+*   **Overview:** What is being built.
+*   **User Stories / Requirements:** detailed functional requirements.
+*   **Technical Details:** Data models, API endpoints, logic flows (mermaid diagrams preferred).
+*   **UI/UX:** Screen descriptions or references to assets.
+*   **Implementation Checklist:** A tracked list of sub-tasks.
+    *   Format: `- [ ] Task Name`
+    *   *The agent updates this checklist as tasks are completed.*
+
+### 2.2. Workflow Cycle
 1.  **Impact Analysis:** Before writing any code, analyze the existing codebase to understand dependencies.
-2.  **Spec Definition:** All features must be defined in the `doc/` directory first.
-    *   Specs must include detailed requirements, logic flows, and **code snippets**.
-3.  **Skeleton Code:** Write the minimum necessary code (classes, method signatures) to allow tests to compile.
-4.  **Test First (Red):** Write Unit Tests (`src/test`) that fail initially.
-    *   **Focus:** Local Unit Tests only (`testDebugUnitTest`). Do NOT run `androidTest`.
-5.  **Implementation (Green):** Implement the logic to make the tests pass.
+2.  **Spec Definition (`/spec`):** Create a comprehensive spec in `doc/` with the **Checklist**.
+3.  **Plan (`/plan`):** Break the spec into sub-issues. **Crucial:** Each sub-issue MUST reference the parent spec file.
+4.  **Implementation (`/implement`):**
+    *   Read the Spec.
+    *   **Update Spec Checklist:** Mark the relevant task as `[x]` in the spec file.
+    *   **Code:** Skeleton -> Test (Red) -> Implement (Green).
+    *   **PR:** Submit Code + Updated Spec.
 
 ## 3. Code Modification Guidelines (CRITICAL)
 To prevent data loss and regression, adhere to these rules when modifying code:
@@ -37,9 +49,9 @@ To prevent data loss and regression, adhere to these rules when modifying code:
 ## 4. Workflow Commands
 The AI Agent interacts via GitHub Issue comments.
 
-*   `/spec`: Create or update a specification file in `doc/` based on the issue description.
-*   `/plan`: Break down a spec into smaller sub-issues for implementation.
-*   `/implement`: Implement the feature defined in the sub-issue following the SpecDD cycle (Skeleton -> Test -> Implement -> PR).
+*   `/spec`: Create or update a specification file in `doc/` based on the issue description. **Must include a Checklist.**
+*   `/plan`: Break down a spec into smaller sub-issues. **Must link sub-issues to the Spec file.**
+*   `/implement`: Implement the feature defined in the sub-issue. **Must update the Spec's checklist.**
 
 ## 5. Technology Standards & Modern Practices
 *   **Latest APIs:** Always prioritize the latest stable Android and Kotlin APIs.

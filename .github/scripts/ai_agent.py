@@ -109,8 +109,9 @@ def handle_spec():
     1. Create a Markdown specification file in the `doc/` directory.
     2. The filename should be descriptive (e.g., `doc/feature_name_spec.md`).
     3. Content must strictly follow the 'Spec Definition' rules in GEMINI.md.
-    4. The content of the specification MUST be in Korean.
-    5. Return ONLY the JSON structure with NO extra text or markdown formatting outside the JSON.
+    4. The content MUST include a section "Implementation Checklist" with "- [ ] Task Name" items.
+    5. The content of the specification MUST be in Korean.
+    6. Return ONLY the JSON structure with NO extra text or markdown formatting outside the JSON.
     
     Expected JSON Format:
     {{
@@ -169,15 +170,16 @@ def handle_plan():
     {spec_context}
     
     Task:
-    1. Identify the specification (if mentioned).
+    1. Identify the specification file path (e.g., doc/foo.md) from the context.
     2. Break down the implementation into small, manageable sub-tasks.
     3. The Task Title and Body MUST be in Korean.
-    4. Return a JSON list of tasks.
+    4. CRITICAL: The 'body' of EACH sub-issue MUST start with "Related Spec: [path to spec file]" so the agent knows the context later.
+    5. Return a JSON list of tasks.
     Format:
     [
         {{
             "title": "작업 제목 (Korean)",
-            "body": "상세 설명 (Korean)... 부모 이슈: #{ISSUE_NUMBER}"
+            "body": "Related Spec: doc/foo.md\\n\\n상세 설명 (Korean)... 부모 이슈: #{ISSUE_NUMBER}"
         }}
     ]
     """
@@ -218,12 +220,14 @@ def handle_implement():
     1. Write Unit Test (src/test/...) that FAILS.
     2. Write Skeleton Code.
     3. Write Implementation.
+    4. **Update the Spec File**: Find the relevant checklist item in the referenced spec file and change "- [ ]" to "- [x]".
     
-    Return JSON with ALL files to create/modify:
+    Return JSON with ALL files to create/modify (including the updated spec file):
     {{
         "files": [
             {{ "path": "app/src/main/...", "content": "..." }},
-            {{ "path": "app/src/test/...", "content": "..." }}
+            {{ "path": "app/src/test/...", "content": "..." }},
+            {{ "path": "doc/...", "content": "..." }}
         ]
     }}
     """
