@@ -21,7 +21,8 @@ repo = gh.get_repo(REPO_NAME)
 issue = repo.get_issue(ISSUE_NUMBER)
 
 # Constants
-MODEL_ID = "gemini-3-pro-preview"
+# Changed to gemini-1.5-pro for stability and large output token support (8192)
+MODEL_ID = "gemini-1.5-pro"
 
 def run_command(command):
     """Runs a shell command and returns output."""
@@ -49,6 +50,28 @@ def extract_json(text):
     # If no fences, return text (assuming it is raw JSON)
     return text
 
+def fetch_spec_content(text):
+    """Finds doc/*.md references in text and fetches their content."""
+    spec_content = ""
+    # Regex to find file paths like doc/something.md or just something.md if mentioned in doc context
+    matches = re.findall(r'(doc/[\w\-\.]+\.md)', text)
+    
+    if not matches:
+        return ""
+        
+    print(f"Found spec references: {matches}")
+    
+    for file_path in matches:
+        try:
+            # Fetch file content from the repo (main branch)
+            file_content = repo.get_contents(file_path, ref="main")
+            decoded_content = file_content.decoded_content.decode("utf-8")
+            spec_content += f"\n\n--- Content of {file_path} ---\n{decoded_content}\n------------------------------\n"
+        except Exception as e:
+            print(f"Warning: Could not fetch spec file {file_path}: {e}")
+            
+    return spec_content
+
 def get_gemini_response(prompt, system_instruction_text=None):
     """Helper to get response from Gemini using the new SDK."""
     
@@ -68,7 +91,8 @@ def get_gemini_response(prompt, system_instruction_text=None):
     config = types.GenerateContentConfig(
         system_instruction=system_instruction_text,
         response_modalities=["TEXT"],
-        response_mime_type="application/json"
+        response_mime_type="application/json",
+        max_output_tokens=8192 # Explicitly set max output tokens
     )
 
     response = client.models.generate_content(
@@ -162,7 +186,7 @@ def handle_plan():
     [
         {{
             "title": "작업 제목 (Korean)",
-            "body": "Related Spec: doc/foo.md\\n\\n상세 설명 (Korean)... 부모 이슈: #{ISSUE_NUMBER}"
+            "body": "Related Spec: doc/foo.md\n\n상세 설명 (Korean)... 부모 이슈: #{ISSUE_NUMBER}"
         }}
     ]
     """
@@ -205,7 +229,8 @@ def handle_implement():
     3. Write Implementation.
     4. **Update the Spec File**: Find the relevant checklist item in the referenced spec file and change "- [ ]" to "- [x]".
     
-    Return JSON with ALL files to create/modify (including the updated spec file):
+    Return JSON with ALL files to create/modify (including the updated spec file).
+    Ensure the JSON is valid and closed properly.
     {{
         "files": [
             {{ "path": "app/src/main/...", "content": "..." }},
