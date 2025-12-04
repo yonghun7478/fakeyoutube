@@ -2,6 +2,7 @@ import os
 import json
 import subprocess
 import re
+import sys
 from google import genai
 from google.genai import types
 from github import Github
@@ -159,6 +160,7 @@ def handle_spec():
     except Exception as e:
         print(f"Raw Response: {response_text}")
         issue.create_comment(f"명세서 작성 중 오류 발생: {str(e)}")
+        sys.exit(1)
 
 def handle_plan():
     """Handles the /plan command."""
@@ -205,6 +207,7 @@ def handle_plan():
     except Exception as e:
         print(f"Raw Response: {response_text}")
         issue.create_comment(f"계획 수립 중 오류 발생: {str(e)}")
+        sys.exit(1)
 
 def handle_implement():
     """Handles the /implement command."""
@@ -283,6 +286,7 @@ def handle_implement():
     except Exception as e:
         print(f"Raw Response: {response_text}")
         issue.create_comment(f"구현 중 오류 발생: {str(e)}")
+        sys.exit(1)
 
 def main():
     if "/spec" in COMMENT_BODY:
