@@ -145,6 +145,10 @@ def handle_spec():
     try:
         json_str = extract_json(response_text)
         data = json.loads(json_str, strict=False)
+        
+        if isinstance(data, list):
+            data = data[0]
+
         filename = data["filename"]
         content = data["content"]
         
@@ -257,6 +261,10 @@ def handle_implement():
         print(f"[DEBUG] Extracted JSON String (First 500 chars): {json_str[:500]}") # Log what we're trying to parse
         
         data = json.loads(json_str, strict=False)
+        
+        if isinstance(data, list):
+            data = data[0]
+
         files = data["files"]
         
         branch_name = f"feat/issue-{ISSUE_NUMBER}"
