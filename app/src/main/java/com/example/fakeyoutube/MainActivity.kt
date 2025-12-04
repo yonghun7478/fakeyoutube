@@ -3,7 +3,7 @@ package com.example.fakeyoutube
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.fakeyoutube.ui.MainScreen
+import com.example.fakeyoutube.ui.screens.MainScreen
 import com.example.fakeyoutube.ui.theme.FakeYouTubeTheme
 
 class MainActivity : ComponentActivity() {
