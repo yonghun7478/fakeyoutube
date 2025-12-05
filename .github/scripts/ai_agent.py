@@ -307,6 +307,101 @@ def handle_implement():
         issue.create_comment(f"구현 중 오류 발생: {str(e)}")
         sys.exit(1)
 
+def handle_sfix():
+    """Handles the /sfix command to update specs in a PR."""
+    print(f"Processing /sfix for Issue #{ISSUE_NUMBER}")
+
+    if not issue.pull_request:
+        issue.create_comment("❌ /sfix 명령어는 PR에서만 사용할 수 있습니다.")
+        return
+
+    pr = repo.get_pull(ISSUE_NUMBER)
+    head_ref = pr.head.ref
+    
+    if not head_ref.startswith("spec/"):
+        issue.create_comment(f"❌ /sfix는 'spec/' 브랜치에서만 동작합니다. (현재 브랜치: {head_ref})")
+        return
+
+    # Find the spec file in the PR
+    files = pr.get_files()
+    spec_file = None
+    for f in files:
+        if f.filename.startswith("doc/") and f.filename.endswith(".md"):
+            spec_file = f
+            break
+    
+    if not spec_file:
+        issue.create_comment("❌ 이 PR에서 수정할 명세서 파일(doc/*.md)을 찾을 수 없습니다.")
+        return
+
+    print(f"Found spec file to update: {spec_file.filename}")
+    
+    # Read current content from the PR branch
+    try:
+        current_content = repo.get_contents(spec_file.filename, ref=head_ref).decoded_content.decode("utf-8")
+    except Exception as e:
+        issue.create_comment(f"❌ 파일 내용을 읽는 중 오류가 발생했습니다: {e}")
+        return
+
+    prompt = f"""
+    The user wants to FIX/UPDATE an existing specification based on feedback in a PR.
+    
+    Target File: {spec_file.filename}
+    
+    === Current File Content ===
+    {current_content}
+    ============================
+    
+    === User Feedback (Correction Instruction) ===
+    {COMMENT_BODY}
+    ==============================================
+    
+    Task:
+    1. Modify the 'Current File Content' strictly following the 'User Feedback'.
+    2. Keep the sections and structure of the original file unless asked to change.
+    3. Output the fully updated content.
+    4. The content MUST be in Korean (unless the existing content is English and user asks to keep it).
+    
+    Return JSON format:
+    {{
+        "content": "..."
+    }}
+    """
+    
+    response_text = get_gemini_response(prompt)
+    
+    try:
+        json_str = extract_json(response_text)
+        data = json.loads(json_str, strict=False)
+        
+        if isinstance(data, list):
+            data = data[0]
+
+        new_content = data["content"]
+        
+        # Setup Git
+        run_command(f"git config --global user.email 'gemini-bot@example.com'")
+        run_command(f"git config --global user.name 'Gemini Bot'")
+        
+        # Fetch and Checkout the PR branch
+        run_command(f"git fetch origin {head_ref}")
+        run_command(f"git checkout {head_ref}")
+        
+        # Write changes
+        with open(spec_file.filename, "w") as f:
+            f.write(new_content)
+            
+        run_command(f"git add {spec_file.filename}")
+        run_command(f"git commit -m 'Update spec based on feedback (/sfix)'")
+        run_command(f"git push origin {head_ref}")
+        
+        issue.create_comment(f"✅ 명세서가 업데이트되었습니다! ({spec_file.filename})")
+        
+    except Exception as e:
+        print(f"Raw Response: {response_text}")
+        issue.create_comment(f"명세서 수정 중 오류 발생: {str(e)}")
+        sys.exit(1)
+
 def main():
     if "/spec" in COMMENT_BODY:
         handle_spec()
@@ -314,6 +409,8 @@ def main():
         handle_plan()
     elif "/implement" in COMMENT_BODY:
         handle_implement()
+    elif "/sfix" in COMMENT_BODY:
+        handle_sfix()
     else:
         print("No valid command found.")
 
