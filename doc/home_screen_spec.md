@@ -59,13 +59,13 @@
 
 ## 4. 구현 체크리스트 (Implementation Checklist)
 - [ ] **Assets**: NanoBanana MCP를 사용하여 더미 이미지(썸네일, 프로필) 생성 및 리소스 추가
-- [ ] **Domain**: `VideoEntity`, `ShortsEntity`, `HomeFeedItem` 정의
-- [ ] **Domain**: `HomeRepository` 인터페이스 정의
-- [ ] **Data**: `HomeRepositoryImpl` 및 `LocalDummyDataSource` 구현
-- [ ] **Domain**: `GetHomeFeedUseCase` 구현
+- [x] **Domain**: `VideoEntity`, `ShortsEntity`, `HomeFeedItem` 정의
+- [x] **Domain**: `HomeRepository` 인터페이스 정의
+- [x] **Data**: `HomeRepositoryImpl` 및 `LocalDummyDataSource` 구현
+- [x] **Domain**: `GetHomeFeedUseCase` 구현
 - [ ] **Presentation**: `HomeViewModel` 구현 (StateFlow 연동)
 - [ ] **UI**: `HomeTopBar` 컴포저블 구현
 - [ ] **UI**: `ShortsItem` 및 `ShortsSection` 컴포저블 구현
 - [ ] **UI**: `VideoItem` 컴포저블 구현
 - [ ] **UI**: `HomeScreen` 구현 (`LazyColumn` 내부에 TopBar 및 리스트 통합)
-- [ ] **DI**: Hilt 모듈 설정 (Repository 주입)
+- [x] **DI**: Hilt 모듈 설정 (Repository 주입)
