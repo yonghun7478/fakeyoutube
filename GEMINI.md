@@ -1,64 +1,72 @@
 # FakeYouTube Project Agent Guidelines (GEMINI.md)
 
-This document defines the operating rules, development methodology, and workflow for the Gemini agent working on the 'FakeYouTube' project.
-This file serves as the **System Prompt** for the AI Agent.
+This document serves as the **System Prompt** for the AI Agent working on the 'FakeYouTube' project. It defines the absolute laws, project standards, and development workflow.
 
-## 1. Project Identity
+## 0. The Constitution (Absolute Laws)
+All actions by the AI Agent MUST adhere to these four fundamental laws. **No exceptions.**
+
+1.  **Language:** All responses, documentation, commit messages, and comments MUST be in **Korean**.
+    *   Commit Message Format: `Type: Subject` (e.g., `Feat: 로그인 화면 구현`).
+    *   English is allowed only for code keywords, library names, or standard file paths.
+2.  **Impact Analysis First:** NEVER modify code or specs blindly.
+    *   You MUST read the relevant files (`read_file`) first to understand the existing context, dependencies, and potential side effects.
+    *   Analysis must precede any action.
+3.  **Respect Existing Style:** Do not rewrite code unnecessarily.
+    *   Mimic the existing coding style, naming conventions, and structure exactly.
+    *   Changes should be minimal and focused (Code Review Friendly).
+    *   Preserve existing logic and imports unless explicitly instructed to refactor.
+4.  **Context-Complete Specs:** The Specification (`doc/`) is the Single Source of Truth.
+    *   A spec file must contain **ALL** necessary context (UI details, logic flows, data models) so that implementation can proceed solely based on the spec.
+    *   **Checklist Mandatory:** Every spec MUST include a detailed `Implementation Checklist` (Sub-tasks) to track progress and control sub-issues.
+
+## 1. Project Identity & Tech Stack
 *   **Goal:** Create a high-fidelity clone of the YouTube Android app.
-*   **Architecture:** **Clean Architecture** + **MVVM** (Model-View-ViewModel).
-    *   **Presentation Layer:** UI (Compose/XML), ViewModels.
-    *   **Domain Layer:** UseCases, Repository Interfaces, Entities. (Pure Kotlin, no Android dependencies).
-    *   **Data Layer:** Repository Implementations, Data Sources (API/DB), DTOs.
-*   **Language:** Kotlin.
-*   **Key Principle:** Respect existing code patterns and directory structures. Maintain a high standard of code quality.
+*   **Architecture:** **Clean Architecture** + **MVVM**.
+    *   **UI:** **Jetpack Compose** (Material3). Activity/Fragment usage is minimized.
+    *   **DI:** Hilt.
+    *   **Async:** Coroutines + Flow.
+    *   **Network:** Retrofit + OkHttp.
+    *   **Image:** Coil.
+*   **Language:** Kotlin (100%).
 
-## 2. Spec-Driven Development (SpecDD) & Single Source of Truth
-The **Specification (`doc/`)** is the **Single Source of Truth**. All implementation details must come from the spec, not the issue comments.
+## 2. Spec-Driven Development (SpecDD)
+Implementation flow strictly follows the **One-Shot TDD Workflow** defined in Section 4.
 
-### 2.1. Spec File Structure ("Rich Specs")
-Every spec file must be self-contained and include:
-*   **Overview:** What is being built.
-*   **User Stories / Requirements:** detailed functional requirements.
-*   **Technical Details:** Data models, API endpoints, logic flows (mermaid diagrams preferred).
-*   **UI/UX:** Screen descriptions or references to assets.
-*   **Implementation Checklist:** A tracked list of sub-tasks.
+### 2.1. Rich Specification Structure
+Every spec file in `doc/` must be self-contained and structure-complete:
+*   **Overview:** What and Why.
+*   **Detailed Requirements:** Functional & Non-functional.
+*   **Technical Specs:**
+    *   Data Models (DTO, Entity).
+    *   API Endpoints.
+    *   Logic Flows (Mermaid diagrams encouraged).
+*   **UI/UX:** Screen composition, Components used.
+*   **Implementation Checklist:**
+    *   Break down the feature into atomic tasks.
     *   Format: `- [ ] Task Name`
-    *   *The agent updates this checklist as tasks are completed.*
+    *   Used for creating sub-issues and tracking progress.
 
-### 2.2. Workflow Cycle
-1.  **Impact Analysis:** Before writing any code, analyze the existing codebase to understand dependencies.
-2.  **Spec Definition (`/spec`):** Create a comprehensive spec in `doc/` with the **Checklist**.
-3.  **Plan (`/plan`):** Break the spec into sub-issues. **Crucial:** Each sub-issue MUST reference the parent spec file.
-4.  **Implementation (`/implement`):**
-    *   Read the Spec.
-    *   **Update Spec Checklist:** Mark the relevant task as `[x]` in the spec file.
-    *   **Code:** Skeleton -> Test (Red) -> Implement (Green).
-    *   **PR:** Submit Code + Updated Spec.
+## 3. Code Modification Guidelines
+To strictly follow **Constitution #2 and #3**:
 
-## 3. Code Modification Guidelines (CRITICAL)
-To prevent data loss and regression, adhere to these rules when modifying code:
+*   **Context Awareness:** Before editing `Foo.kt`, you MUST read `Foo.kt` and its related files (tests, usage) to understand *how* it works.
+*   **Tool Selection:**
+    *   **New Files:** Use `write_file` freely to create **NEW** files (e.g., Skeleton code).
+    *   **Existing Files:** PREFER `replace` to modify specific blocks. AVOID `write_file` on existing files unless rewriting (Refactoring).
+*   **Dependency Management:** Check `libs.versions.toml` (Version Catalog) before adding new dependencies. Do not hardcode versions in `build.gradle.kts`.
 
-*   **NO BLIND WRITES:** Never modify a file without reading it first (`read_file`). You must understand the existing context (imports, coding style, SDK versions, variable names) before making changes.
-*   **PREFER `replace`:** Use the `replace` tool for modifying existing files. This ensures that only the targeted lines are changed, leaving the rest of the file (context) intact.
-*   **SAFE `write_file`:** Use `write_file` ONLY for:
-    *   Creating NEW files.
-    *   Completely rewriting a file (Refactoring).
-    *   *Constraint:* If you must use `write_file` on an existing file, you are responsible for **manually preserving** all existing logic, imports, and configurations that are not part of the change.
-*   **STRICT MIMICRY:** When adding code, strictly mimic the existing project style (e.g., if `libs.versions.toml` is used, do not hardcode dependencies).
+## 4. One-Shot TDD Workflow
+To prevent infinite repair loops, the agent must follow this strict linear process for implementation:
 
-## 4. Workflow Commands
-The AI Agent interacts via GitHub Issue comments.
+1.  **Skeleton:** Create interface/class structures based on the Spec. (Use `write_file` for new files).
+2.  **Test (Red):** Write unit tests that verify the Spec requirements. These tests should ideally fail against the skeleton.
+3.  **Implement (Green):** Write the actual implementation logic.
+4.  **Verify (Run Once):** Execute the tests **EXACTLY ONCE**.
+5.  **Stop & Report:**
+    *   Commit the changes regardless of the test result.
+    *   Report the test outcome (Pass/Fail) in the PR body.
+    *   **Failure Analysis:** If tests fail, briefly analyze if it's an Implementation Bug or a Spec Flaw in the report.
+    *   **DO NOT** attempt to fix the code autonomously if tests fail. Await human instruction.
 
-*   `/spec`: Create or update a specification file in `doc/` based on the issue description. **Must include a Checklist.**
-*   `/plan`: Break down a spec into smaller sub-issues. **Must link sub-issues to the Spec file.**
-*   `/implement`: Implement the feature defined in the sub-issue. **Must update the Spec's checklist.**
-
-## 5. Technology Standards & Modern Practices
-*   **Latest APIs:** Always prioritize the latest stable Android and Kotlin APIs.
-    *   *Strictly Avoid:* Deprecated libraries (e.g., `AsyncTask`, `kotlin-android-extensions`, legacy support libraries).
-    *   *Prefer:* Jetpack libraries (ViewModel, LiveData/Flow), Coroutines, Hilt (for DI), and modern dependency injection.
-*   **Code Freshness:** Act as an engineer who is up-to-date with the 2024/2025 Android ecosystem. If a library has a known newer version (e.g., `google-genai` vs `google-generativeai`), ALWAYS use the newer one.
-*   **Architectural Integrity:**
-    *   Enforce strict separation between layers (Presentation -> Domain -> Data).
-    *   Domain layer must remain pure Kotlin.
-    *   Use dependency injection (Hilt recommended) to manage dependencies.
+*Tools:* JUnit4, Mockk, Turbine (for Flow).
+*Scope:* Focus on Unit Tests for Domain Layer (UseCases) and Presentation Layer (ViewModels).
