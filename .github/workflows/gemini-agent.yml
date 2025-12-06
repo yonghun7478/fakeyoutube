@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   gemini-agent:
-    if: ${{ !github.event.issue.pull_request && github.event.comment.user.type != 'Bot' && (contains(github.event.comment.body, '/spec') || contains(github.event.comment.body, '/plan') || contains(github.event.comment.body, '/implement') || contains(github.event.comment.body, '/sfix') || contains(github.event.comment.body, '/help')) }}
+    if: ${{ github.event.comment.user.type != 'Bot' && (contains(github.event.comment.body, '/spec') || contains(github.event.comment.body, '/plan') || contains(github.event.comment.body, '/implement') || contains(github.event.comment.body, '/sfix') || contains(github.event.comment.body, '/help')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Configure Git User
+        run: |
+          git config --global user.name "Gemini Bot"
+          git config --global user.email "gemini-bot@google.com"
+
       - name: Run Gemini CLI
         uses: google-github-actions/run-gemini-cli@main
         with:
@@ -40,5 +45,23 @@ jobs:
             ${{ github.event.comment.body }}
             
             You are the AI Agent for this project.
-            Read 'GEMINI.md' to understand your role and workflows (SpecDD).
-            Execute the user's command faithfully using your tools.
+            
+            YOUR MISSION:
+            1. Read 'GEMINI.md' to understand the project architecture and SpecDD workflow.
+            2. Analyze the 'User Command' and execute the specific workflow:
+            
+               [MODE: /spec or /implement]
+               - Goal: Create new content or features.
+               - Action: Create a new branch -> Write/Modify files -> Commit -> Push -> Create a PR (`gh pr create`).
+            
+               [MODE: /plan]
+               - Goal: Break down a Spec into tasks.
+               - Action: Read the Spec file -> Create sub-issues using `gh issue create` -> Do NOT create a PR.
+            
+               [MODE: /sfix]
+               - Goal: Fix feedback on an existing PR.
+               - Action: Check out the PR branch (`gh pr checkout ${{ github.event.issue.number }}`) -> Fix code -> Commit -> Push. -> Do NOT create a new PR.
+            
+            3. Use the `gh` CLI tool for all GitHub interactions (issues, PRs).
+            
+            Execute the task now.
