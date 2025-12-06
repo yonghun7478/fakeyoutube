@@ -1,4 +1,4 @@
-name: Gemini AI Agent
+name: Gemini Agent
 
 on:
   issue_comment:
@@ -10,31 +10,35 @@ permissions:
   issues: write
 
 jobs:
-  ai_agent_job:
-    if: contains(github.event.comment.body, '/spec') || contains(github.event.comment.body, '/plan') || contains(github.event.comment.body, '/implement') || contains(github.event.comment.body, '/sfix')
+  gemini-agent:
+    if: ${{ !github.event.issue.pull_request && github.event.comment.user.type != 'Bot' && (contains(github.event.comment.body, '/spec') || contains(github.event.comment.body, '/plan') || contains(github.event.comment.body, '/implement') || contains(github.event.comment.body, '/sfix') || contains(github.event.comment.body, '/help')) }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for context
+          fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Install dependencies
-        run: |
-          pip install -r .github/scripts/requirements.txt
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Run AI Agent Script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          REPO_NAME: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
-        run: |
-          python .github/scripts/ai_agent.py
+      - name: Run Gemini CLI
+        uses: google-github-actions/run-gemini-cli@v1.0.2
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Context: Issue #${{ github.event.issue.number }}
+            User: ${{ github.event.comment.user.login }}
+            
+            User Command:
+            ${{ github.event.comment.body }}
+            
+            You are the AI Agent for this project.
+            Read 'GEMINI.md' to understand your role and workflows (SpecDD).
+            Execute the user's command faithfully using your tools.
