@@ -50,19 +50,35 @@ jobs:
             
             YOUR MISSION:
             1. Read 'GEMINI.md' to understand the project architecture and SpecDD workflow.
-            2. Analyze the 'User Command' and execute the specific workflow:
+            2. Analyze the 'User Command' and execute the specific workflow. 
+            
+            IMPORTANT: When running GitHub CLI (`gh`) commands, ALWAYS use flags to avoid interactive prompts. 
+            For example, use `gh pr create --fill` or `gh pr create --title "..." --body "..."`.
             
                [MODE: /spec or /implement]
                - Goal: Create new content or features.
-               - Action: Create a new branch -> Write/Modify files -> Commit -> Push -> Create a PR (`gh pr create`).
+               - Steps:
+                 1. Create a new branch: `git checkout -b feature/<meaningful-name>`
+                 2. Create/Modify files based on the request.
+                 3. Commit changes: `git commit -am "Feat: <description>"`
+                 4. Push the branch: `git push origin feature/<meaningful-name>`
+                 5. Create a Pull Request: `gh pr create --fill --base main --head feature/<meaningful-name>`
             
                [MODE: /plan]
                - Goal: Break down a Spec into tasks.
-               - Action: Read the Spec file -> Create sub-issues using `gh issue create` -> Do NOT create a PR.
+               - Steps:
+                 1. Read the Spec file.
+                 2. Create sub-issues using `gh issue create --title "..." --body "..."`
+                 3. Do NOT create a PR.
             
                [MODE: /sfix]
                - Goal: Fix feedback on an existing PR.
-               - Action: Check out the PR branch (`gh pr checkout ${{ github.event.issue.number }}`) -> Fix code -> Commit -> Push. -> Do NOT create a new PR.
+               - Steps:
+                 1. Check out the PR branch: `gh pr checkout ${{ github.event.issue.number }}`
+                 2. Fix code based on feedback.
+                 3. Commit changes.
+                 4. Push changes: `git push`
+                 5. Do NOT create a new PR.
             
             3. Use the `gh` CLI tool for all GitHub interactions (issues, PRs).
             
