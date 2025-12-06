@@ -34,6 +34,8 @@ jobs:
 
       - name: Run Gemini CLI
         uses: google-github-actions/run-gemini-cli@main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
